@@ -238,12 +238,17 @@ model_circuit, model_readout = create_quantum_model()
 # To classify these images, <a href="https://arxiv.org/pdf/1802.06002.pdf" class="external">Farhi et al.</a> proposed taking the expectation of a readout qubit in a parameterized circuit. The expectation returns a value between 1 and -1.
 # Build the Keras model.
 import qsimcirq
+
+options = {'t': 16}
+
+qsim_simulator = qsimcirq.QSimSimulator(options)
+
 model = tf.keras.Sequential([
     # The input is the data-circuit, encoded as a tf.string
     tf.keras.layers.Input(shape=(), dtype=tf.string),
     # The PQC layer returns the expected value of the readout gate, range [-1,1].
     tfq.layers.PQC(model_circuit, model_readout,
-                   backend=qsimcirq.QSimSimulator(),
+                   backend=qsim_simulator,
                    ),
 ])
 model.compile(
@@ -284,7 +289,7 @@ y_train_hinge_sub = y_train_hinge[:NUM_EXAMPLES]
 # Training this model to convergence should achieve >85% accuracy on the test set.
 
 import datetime
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "_1000_samples_32_param_X,Y_qsim_Simulator"
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "_1000_samples_32_param_X,Y_qsim_Simulator_16threads"
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 qnn_history = model.fit(
